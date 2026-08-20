@@ -57,14 +57,14 @@ function ChatPage() {
   useEffect(() => {
     if (!user) return;
     let active = true;
+    const pair = [user.id, peerId];
 
     async function load() {
       const { data, error } = await supabase
         .from("messages")
         .select("*")
-        .or(
-          `and(sender_id.eq.${user!.id},recipient_id.eq.${peerId}),and(sender_id.eq.${peerId},recipient_id.eq.${user!.id})`,
-        )
+        .in("sender_id", pair)
+        .in("recipient_id", pair)
         .order("created_at", { ascending: true });
       if (error) {
         toast.error(error.message);
@@ -90,10 +90,15 @@ function ChatPage() {
       )
       .subscribe();
 
+    // Polling fallback: campus mobile data drops websockets often.
+    const poll = setInterval(() => void load(), 4000);
+
     return () => {
       active = false;
+      clearInterval(poll);
       void supabase.removeChannel(channel);
     };
+
   }, [user, peerId]);
 
   useEffect(() => {

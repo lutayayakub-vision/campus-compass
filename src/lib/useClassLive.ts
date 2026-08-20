@@ -32,9 +32,11 @@ export function useClassLive(classId: string | null | undefined) {
   useEffect(() => {
     const t = setInterval(() => {
       void qc.invalidateQueries({ queryKey: ["class-locations"] });
-    }, 15000);
+      void qc.invalidateQueries({ queryKey: ["class-members"] });
+    }, 6000);
     return () => clearInterval(t);
   }, [qc]);
+
 
   return {
     members: members.data ?? [],
