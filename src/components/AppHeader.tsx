@@ -3,7 +3,7 @@ import { Compass, LogOut } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 
-export function AppHeader({ subtitle }: { subtitle?: string }) {
+export function AppHeader({ subtitle }: { subtitle?: string | undefined }) {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
 
