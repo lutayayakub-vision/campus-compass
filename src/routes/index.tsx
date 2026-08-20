@@ -161,6 +161,8 @@ function SignInForm() {
 
 function SignUpForm() {
   const { data: classes } = useQuery(classesQuery);
+  const { refreshProfile } = useAuth();
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -195,10 +197,19 @@ function SignUpForm() {
         role,
         class_id: classId,
       });
-      if (pErr) toast.error(pErr.message);
+      setBusy(false);
+      if (pErr) {
+        toast.error(pErr.message);
+        return;
+      }
+      await refreshProfile();
+      void navigate({ to: role === "rep" ? "/rep" : "/fresher" });
+      return;
     }
     setBusy(false);
+    toast.success("Check your email to confirm your account, then sign in.");
   }
+
 
   return (
     <form onSubmit={onSubmit} className="grid gap-3">
