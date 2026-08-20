@@ -10,33 +10,73 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as FresherRouteImport } from './routes/fresher'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as RepRouteImport } from './routes/rep'
+import { Route as ChatPeerIdRouteImport } from './routes/chat.$peerId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FresherRoute = FresherRouteImport.update({
+  id: '/fresher',
+  path: '/fresher',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RepRoute = RepRouteImport.update({
+  id: '/rep',
+  path: '/rep',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChatPeerIdRoute = ChatPeerIdRouteImport.update({
+  id: '/chat/$peerId',
+  path: '/chat/$peerId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/fresher': typeof FresherRoute
+  '/onboarding': typeof OnboardingRoute
+  '/rep': typeof RepRoute
+  '/chat/$peerId': typeof ChatPeerIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/fresher': typeof FresherRoute
+  '/onboarding': typeof OnboardingRoute
+  '/rep': typeof RepRoute
+  '/chat/$peerId': typeof ChatPeerIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/fresher': typeof FresherRoute
+  '/onboarding': typeof OnboardingRoute
+  '/rep': typeof RepRoute
+  '/chat/$peerId': typeof ChatPeerIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/fresher' | '/onboarding' | '/rep' | '/chat/$peerId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/fresher' | '/onboarding' | '/rep' | '/chat/$peerId'
+  id: '__root__' | '/' | '/fresher' | '/onboarding' | '/rep' | '/chat/$peerId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  FresherRoute: typeof FresherRoute
+  OnboardingRoute: typeof OnboardingRoute
+  RepRoute: typeof RepRoute
+  ChatPeerIdRoute: typeof ChatPeerIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +88,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/fresher': {
+      id: '/fresher'
+      path: '/fresher'
+      fullPath: '/fresher'
+      preLoaderRoute: typeof FresherRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rep': {
+      id: '/rep'
+      path: '/rep'
+      fullPath: '/rep'
+      preLoaderRoute: typeof RepRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chat/$peerId': {
+      id: '/chat/$peerId'
+      path: '/chat/$peerId'
+      fullPath: '/chat/$peerId'
+      preLoaderRoute: typeof ChatPeerIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  FresherRoute: FresherRoute,
+  OnboardingRoute: OnboardingRoute,
+  RepRoute: RepRoute,
+  ChatPeerIdRoute: ChatPeerIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
