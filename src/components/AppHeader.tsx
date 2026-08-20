@@ -8,7 +8,7 @@ export function AppHeader({ subtitle }: { subtitle?: string }) {
   const navigate = useNavigate();
 
   return (
-    <header className="sticky top-0 z-500 flex items-center gap-3 border-b bg-card px-4 py-3">
+    <header className="sticky top-0 z-[1000] flex items-center gap-3 border-b bg-card px-4 py-3">
       <Link to="/" className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary">
         <Compass className="size-5 text-primary-foreground" />
       </Link>
