@@ -9,15 +9,9 @@ import { useGeoShare } from "@/lib/useGeoShare";
 import { distanceMeters, type MapBuilding, type MapPerson } from "@/lib/campus";
 import { AppHeader } from "@/components/AppHeader";
 import { MapPanel } from "@/components/MapPanel";
+import { BuildingPicker } from "@/components/BuildingPicker";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 export const Route = createFileRoute("/fresher")({
   head: () => ({
@@ -135,18 +129,12 @@ function FresherPage() {
           <Label className="text-xs uppercase tracking-wide text-muted-foreground">
             Where are you trying to reach?
           </Label>
-          <Select value={profile?.target_building_id ?? ""} onValueChange={setTarget}>
-            <SelectTrigger className="mt-2">
-              <SelectValue placeholder="Pick a lecture building" />
-            </SelectTrigger>
-            <SelectContent>
-              {buildings.map((b) => (
-                <SelectItem key={b.id} value={b.id}>
-                  {b.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <BuildingPicker
+            buildings={buildings}
+            value={profile?.target_building_id ?? null}
+            onSelect={setTarget}
+            placeholder="Pick a lecture building"
+          />
           {distance !== null ? (
             <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
               <Navigation className="size-4 text-accent" />
