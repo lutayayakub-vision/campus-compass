@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { MapPin, Compass, MessageSquare } from "lucide-react";
+import { MapPin, Compass, MessageSquare, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -41,19 +41,39 @@ export const Route = createFileRoute("/")({
 function Index() {
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
+  const [recovery, setRecovery] = useState(false);
 
   useEffect(() => {
-    if (loading || !user || !profile) return;
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") setRecovery(true);
+    });
+    return () => data.subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (recovery || loading || !user || !profile) return;
     if (!profile.class_id) {
       void navigate({ to: "/onboarding" });
       return;
     }
     void navigate({ to: profile.role === "rep" ? "/rep" : "/fresher" });
-  }, [loading, user, profile, navigate]);
+  }, [recovery, loading, user, profile, navigate]);
 
   useEffect(() => {
+    if (recovery) return;
     if (!loading && user && !profile) void navigate({ to: "/onboarding" });
-  }, [loading, user, profile, navigate]);
+  }, [recovery, loading, user, profile, navigate]);
+
+  if (recovery) {
+    return (
+      <UpdatePasswordForm
+        onDone={() => {
+          setRecovery(false);
+          void navigate({ to: "/" });
+        }}
+      />
+    );
+  }
 
   if (loading || user) {
     return (
@@ -114,10 +134,51 @@ function AuthScreen() {
   );
 }
 
+function PasswordField({
+  id,
+  value,
+  onChange,
+  autoComplete,
+  minLength,
+}: {
+  id: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  autoComplete: string;
+  minLength?: number;
+}) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="relative">
+      <Input
+        id={id}
+        type={show ? "text" : "password"}
+        autoComplete={autoComplete}
+        required
+        minLength={minLength}
+        value={value}
+        onChange={onChange}
+        className="pr-9"
+      />
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="absolute right-0 top-0 h-9 w-9 text-muted-foreground hover:bg-transparent"
+        onClick={() => setShow((s) => !s)}
+        aria-label={show ? "Hide password" : "Show password"}
+      >
+        {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+      </Button>
+    </div>
+  );
+}
+
 function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [forgot, setForgot] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -126,6 +187,8 @@ function SignInForm() {
     setBusy(false);
     if (error) toast.error(error.message);
   }
+
+  if (forgot) return <ForgotPasswordForm onBack={() => setForgot(false)} />;
 
   return (
     <form onSubmit={onSubmit} className="grid gap-3">
@@ -142,12 +205,19 @@ function SignInForm() {
         />
       </div>
       <div className="grid gap-1.5">
-        <Label htmlFor="si-pass">Password</Label>
-        <Input
+        <div className="flex items-center justify-between">
+          <Label htmlFor="si-pass">Password</Label>
+          <button
+            type="button"
+            onClick={() => setForgot(true)}
+            className="text-xs text-muted-foreground hover:text-foreground"
+          >
+            Forgot password?
+          </button>
+        </div>
+        <PasswordField
           id="si-pass"
-          type="password"
           autoComplete="current-password"
-          required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
@@ -156,6 +226,146 @@ function SignInForm() {
         {busy ? "Signing in…" : "Sign in"}
       </Button>
     </form>
+  );
+}
+
+function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin,
+    });
+    setBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setSent(true);
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="grid gap-3">
+      <div className="grid gap-1">
+        <h2 className="text-base font-semibold">Reset your password</h2>
+        <p className="text-sm text-muted-foreground">
+          {sent
+            ? `Reset link sent to ${email}. Check your inbox.`
+            : "Enter your email and we'll send you a link to reset your password."}
+        </p>
+      </div>
+      <div className="grid gap-1.5">
+        <Label htmlFor="fp-email">Email</Label>
+        <Input
+          id="fp-email"
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={sent}
+        />
+      </div>
+      <Button type="submit" disabled={busy || sent} className="w-full">
+        {busy ? "Sending…" : "Send reset link"}
+      </Button>
+      <button
+        type="button"
+        onClick={onBack}
+        className="text-xs text-muted-foreground hover:text-foreground"
+      >
+        Back to sign in
+      </button>
+    </form>
+  );
+}
+
+function UpdatePasswordForm({ onDone }: { onDone: () => void }) {
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters.");
+      return;
+    }
+    if (password !== confirm) {
+      toast.error("Passwords don't match.");
+      return;
+    }
+    setBusy(true);
+    const { error } = await supabase.auth.updateUser({ password });
+    setBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Password updated. Please sign in.");
+    await supabase.auth.signOut();
+    onDone();
+  }
+
+  return (
+    <main className="min-h-screen bg-background">
+      <section className="mx-auto flex w-full max-w-md flex-col gap-6 px-5 py-10">
+        <header className="text-center">
+          <h1 className="text-2xl font-bold tracking-tight">Set a new password</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Choose a new password for your account.
+          </p>
+        </header>
+        <form onSubmit={onSubmit} className="panel grid gap-3 p-5">
+          <div className="grid gap-1.5">
+            <Label htmlFor="up-pass">New password</Label>
+            <div className="relative">
+              <Input
+                id="up-pass"
+                type={showPassword ? "text" : "password"}
+                required
+                minLength={6}
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="pr-9"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-0 top-0 h-9 w-9 text-muted-foreground hover:bg-transparent"
+                onClick={() => setShowPassword((s) => !s)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              </Button>
+            </div>
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="up-confirm">Confirm password</Label>
+            <Input
+              id="up-confirm"
+              type={showPassword ? "text" : "password"}
+              required
+              minLength={6}
+              autoComplete="new-password"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+            />
+          </div>
+          <Button type="submit" disabled={busy} className="w-full">
+            {busy ? "Updating…" : "Update password"}
+          </Button>
+        </form>
+      </section>
+    </main>
   );
 }
 
@@ -270,12 +480,10 @@ function SignUpForm() {
       </div>
       <div className="grid gap-1.5">
         <Label htmlFor="su-pass">Password</Label>
-        <Input
+        <PasswordField
           id="su-pass"
-          type="password"
-          required
-          minLength={6}
           autoComplete="new-password"
+          minLength={6}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
