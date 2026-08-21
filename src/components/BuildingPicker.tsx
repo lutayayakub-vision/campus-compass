@@ -149,13 +149,15 @@ export function BuildingPicker({
           <DialogTitle>Choose a building</DialogTitle>
         </DialogHeader>
         <Command className="flex-1 overflow-hidden" shouldFilter={false}>
-          <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
+          <div className="flex items-center border-b px-3">
             <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-            <CommandInput
+            <input
+              type="text"
               placeholder="Search Makerere buildings…"
               value={search}
-              onValueChange={setSearch}
+              onChange={(e) => setSearch(e.target.value)}
               className="flex h-12 w-full rounded-md bg-transparent py-3 text-base outline-none placeholder:text-muted-foreground"
+              autoFocus
             />
           </div>
           <CommandList className="max-h-[60dvh] overflow-y-auto px-2 pb-4">
