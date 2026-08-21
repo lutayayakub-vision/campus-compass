@@ -12,4 +12,11 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    server: {
+      // Base44 serves the preview through an external hostname that changes whenever
+      // the environment is recreated; allow all hosts so the preview can reach the dev server.
+      allowedHosts: true,
+    },
+  },
 });
