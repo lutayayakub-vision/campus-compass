@@ -165,7 +165,7 @@ export function BuildingPicker({
             </CommandEmpty>
             {categories.map((cat) => (
               <CommandGroup key={cat} heading={cat} className="pt-2">
-                {filtered[cat].map((b) => (
+                {filtered[cat]!.map((b) => (
                   <CommandItem
                     key={b.id}
                     value={b.id}
