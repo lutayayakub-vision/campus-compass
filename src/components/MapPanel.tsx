@@ -1,13 +1,13 @@
 import { Suspense, lazy } from "react";
 import { ClientOnly } from "@tanstack/react-router";
-import type { MapBuilding, MapPerson } from "@/lib/campus";
+import type { MapBuilding, MapPerson, MapRoute } from "@/lib/campus";
 
 const CampusMap = lazy(() => import("./CampusMap"));
 
 export type MapPanelProps = {
   people: MapPerson[];
   buildings: MapBuilding[];
-  route?: { from: [number, number]; to: [number, number] } | null;
+  routes?: MapRoute[] | null;
   fitTo?: Array<[number, number]>;
   onSelectPerson?: (id: string) => void;
   className?: string;

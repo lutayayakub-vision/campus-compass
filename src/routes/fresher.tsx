@@ -6,7 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useClassLive } from "@/lib/useClassLive";
 import { useGeoShare } from "@/lib/useGeoShare";
-import { distanceMeters, type MapBuilding, type MapPerson } from "@/lib/campus";
+import { type MapBuilding, type MapPerson, type MapRoute } from "@/lib/campus";
+import { useRoute } from "@/lib/useRoute";
+import { formatDuration, estimateWalkSeconds } from "@/lib/routing";
 import { AppHeader } from "@/components/AppHeader";
 import { MapPanel } from "@/components/MapPanel";
 import { BuildingPicker } from "@/components/BuildingPicker";
@@ -50,6 +52,11 @@ function FresherPage() {
   const target = buildings.find((b) => b.id === profile?.target_building_id);
 
   const me = geo.coords ?? (myLoc ? { lat: myLoc.lat, lng: myLoc.lng } : null);
+
+  const repPoint = repLoc ? { lat: repLoc.lat, lng: repLoc.lng } : null;
+  const targetPoint = target ? { lat: target.lat, lng: target.lng } : null;
+  const meeting = useRoute(repPoint, me);
+  const destination = useRoute(me, targetPoint);
 
   const people = useMemo<MapPerson[]>(() => {
     const list: MapPerson[] = [];
@@ -100,8 +107,37 @@ function FresherPage() {
     toast.success("Destination shared with your rep");
   }
 
-  const distance = me && target ? distanceMeters(me, target) : null;
   const status = myLoc?.status ?? "lost";
+
+  const meetTime =
+    repPoint && me
+      ? formatDuration(meeting.data?.duration ?? estimateWalkSeconds(repPoint, me))
+      : null;
+  const destTime =
+    me && targetPoint
+      ? formatDuration(destination.data?.duration ?? estimateWalkSeconds(me, targetPoint))
+      : null;
+
+  const mapRoutes: MapRoute[] = [];
+  if (repPoint && me) {
+    mapRoutes.push({
+      from: [repPoint.lat, repPoint.lng],
+      to: [me.lat, me.lng],
+      path: meeting.data?.path ?? null,
+      color: "#2563eb",
+      weight: 4,
+    });
+  }
+  if (me && targetPoint) {
+    mapRoutes.push({
+      from: [me.lat, me.lng],
+      to: [targetPoint.lat, targetPoint.lng],
+      path: destination.data?.path ?? null,
+      color: "#b8860b",
+      dashArray: "6 8",
+      weight: 3,
+    });
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -112,11 +148,7 @@ function FresherPage() {
           className="h-full w-full"
           people={people}
           buildings={mapBuildings}
-          route={
-            me && target
-              ? { from: [me.lat, me.lng], to: [target.lat, target.lng] }
-              : null
-          }
+          routes={mapRoutes}
           fitTo={[
             ...people.map((p) => [p.lat, p.lng] as [number, number]),
             ...(target ? [[target.lat, target.lng] as [number, number]] : []),
@@ -135,10 +167,10 @@ function FresherPage() {
             onSelect={setTarget}
             placeholder="Pick a lecture building"
           />
-          {distance !== null ? (
+          {destTime && target ? (
             <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
               <Navigation className="size-4 text-accent" />
-              About {distance} m away in a straight line
+              About {destTime} walk to {target.name}
             </p>
           ) : null}
         </section>
@@ -190,6 +222,11 @@ function FresherPage() {
                 <p className="text-xs text-muted-foreground">
                   {repLoc ? "On the map now" : "Location not shared"}
                 </p>
+                {repLoc && meetTime ? (
+                  <p className="text-xs text-muted-foreground">
+                    Can reach you in ~{meetTime}
+                  </p>
+                ) : null}
               </div>
               <Button asChild>
                 <Link to="/chat/$peerId" params={{ peerId: rep.id }}>

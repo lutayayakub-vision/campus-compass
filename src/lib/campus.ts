@@ -40,3 +40,13 @@ export type MapBuilding = {
   lng: number;
   highlighted?: boolean;
 };
+
+export type MapRoute = {
+  from: [number, number];
+  to: [number, number];
+  /** Walkable path; falls back to a straight line from→to when unavailable. */
+  path?: Array<[number, number]> | null;
+  color?: string;
+  dashArray?: string;
+  weight?: number;
+};
