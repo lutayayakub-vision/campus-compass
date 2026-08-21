@@ -1,0 +1,1 @@
+DELETE FROM public.buildings WHERE name IN ('Main Administration Building (Ivory Tower)','Makerere University Main Gate','School of Law (New Block)');
