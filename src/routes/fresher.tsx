@@ -133,7 +133,7 @@ function FresherPage() {
       from: [me.lat, me.lng],
       to: [targetPoint.lat, targetPoint.lng],
       path: destination.data?.path ?? null,
-      color: "#b8860b",
+      color: "#2563eb",
       dashArray: "6 8",
       weight: 3,
     });
