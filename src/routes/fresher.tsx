@@ -129,18 +129,12 @@ function FresherPage() {
           <Label className="text-xs uppercase tracking-wide text-muted-foreground">
             Where are you trying to reach?
           </Label>
-          <Select value={profile?.target_building_id ?? ""} onValueChange={setTarget}>
-            <SelectTrigger className="mt-2">
-              <SelectValue placeholder="Pick a lecture building" />
-            </SelectTrigger>
-            <SelectContent>
-              {buildings.map((b) => (
-                <SelectItem key={b.id} value={b.id}>
-                  {b.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <BuildingPicker
+            buildings={buildings}
+            value={profile?.target_building_id ?? null}
+            onSelect={setTarget}
+            placeholder="Pick a lecture building"
+          />
           {distance !== null ? (
             <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
               <Navigation className="size-4 text-accent" />
