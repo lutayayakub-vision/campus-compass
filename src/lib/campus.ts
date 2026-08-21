@@ -1,5 +1,11 @@
 export const CAMPUS_CENTER: [number, number] = [0.3324, 32.5692];
 
+/** Bounds the map to the Makerere campus + Mulago, including the university hospital. */
+export const CAMPUS_BOUNDS: [[number, number], [number, number]] = [
+  [0.3265, 32.5635], // SW — south of CEDAT, west of the Western Gate
+  [0.3455, 32.578], // NE — past Mulago (College of Health Sciences) in the north
+];
+
 export function distanceMeters(
   a: { lat: number; lng: number },
   b: { lat: number; lng: number },

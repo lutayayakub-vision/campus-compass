@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import L from "leaflet";
 import { MapContainer, Marker, Popup, TileLayer, useMap, Polyline } from "react-leaflet";
-import { CAMPUS_CENTER, type MapBuilding, MapPerson, type MapRoute } from "@/lib/campus";
+import { CAMPUS_CENTER, CAMPUS_BOUNDS, type MapBuilding, MapPerson, type MapRoute } from "@/lib/campus";
 
 function pin(className: string, label: string) {
   return L.divIcon({
@@ -62,6 +62,9 @@ export default function CampusMap({
       center={CAMPUS_CENTER}
       zoom={16}
       scrollWheelZoom
+      maxBounds={CAMPUS_BOUNDS}
+      maxBoundsViscosity={1.0}
+      minZoom={15}
       className="h-full w-full"
       style={{ height: "100%", width: "100%" }}
     >
