@@ -110,7 +110,7 @@ export function BuildingPicker({
       groups[cat].push(b);
     }
     for (const cat of Object.keys(groups)) {
-      groups[cat].sort((a, b) => a.name.localeCompare(b.name));
+      groups[cat]!.sort((a, b) => a.name.localeCompare(b.name));
     }
     return groups;
   }, [buildings]);
