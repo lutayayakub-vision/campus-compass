@@ -181,4 +181,15 @@
 .leaflet-container {
   font: inherit;
   background: var(--color-muted);
+  z-index: 0;
+  isolation: isolate;
 }
+
+/* Keep Leaflet's internal panes below app overlays (dialogs, popovers) */
+.leaflet-pane,
+.leaflet-top,
+.leaflet-bottom,
+.leaflet-control {
+  z-index: 1 !important;
+}
+
