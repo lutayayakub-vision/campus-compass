@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import L from "leaflet";
 import { MapContainer, Marker, Popup, TileLayer, useMap, Polyline } from "react-leaflet";
-import { CAMPUS_CENTER, type MapBuilding, type MapPerson } from "@/lib/campus";
+import { CAMPUS_CENTER, CAMPUS_BOUNDS, type MapBuilding, MapPerson, type MapRoute } from "@/lib/campus";
 
 function pin(className: string, label: string) {
   return L.divIcon({
@@ -40,7 +40,7 @@ function FitBounds({ points }: { points: Array<[number, number]> }) {
 export type CampusMapProps = {
   people: MapPerson[];
   buildings: MapBuilding[];
-  route?: { from: [number, number]; to: [number, number] } | null;
+  routes?: MapRoute[] | null;
   fitTo?: Array<[number, number]>;
   onSelectPerson?: (id: string) => void;
 };
@@ -48,7 +48,7 @@ export type CampusMapProps = {
 export default function CampusMap({
   people,
   buildings,
-  route,
+  routes,
   fitTo,
   onSelectPerson,
 }: CampusMapProps) {
@@ -62,6 +62,9 @@ export default function CampusMap({
       center={CAMPUS_CENTER}
       zoom={16}
       scrollWheelZoom
+      maxBounds={CAMPUS_BOUNDS}
+      maxBoundsViscosity={1.0}
+      minZoom={15}
       className="h-full w-full"
       style={{ height: "100%", width: "100%" }}
     >
@@ -107,12 +110,17 @@ export default function CampusMap({
         </Marker>
       ))}
 
-      {route ? (
+      {routes?.map((r, i) => (
         <Polyline
-          positions={[route.from, route.to]}
-          pathOptions={{ color: "#b8860b", dashArray: "6 8", weight: 3 }}
+          key={i}
+          positions={r.path && r.path.length > 1 ? r.path : [r.from, r.to]}
+          pathOptions={{
+            color: r.color ?? "#b8860b",
+            dashArray: r.dashArray,
+            weight: r.weight ?? 3,
+          }}
         />
-      ) : null}
+      ))}
     </MapContainer>
   );
 }
