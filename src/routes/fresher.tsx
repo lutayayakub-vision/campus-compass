@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useMemo } from "react";
-import { MessageSquare, Navigation, Radio } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { MessageSquare, Navigation, Radio, ChevronsUp } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -93,6 +93,8 @@ function FresherPage() {
     [buildings, profile?.target_building_id],
   );
 
+  const [pickerExpanded, setPickerExpanded] = useState(false);
+
   async function setTarget(id: string) {
     if (!user) return;
     const { error } = await supabase
@@ -104,6 +106,7 @@ function FresherPage() {
       return;
     }
     await refreshProfile();
+    setPickerExpanded(false);
     toast.success("Destination shared with your rep");
   }
 
@@ -157,23 +160,47 @@ function FresherPage() {
       </div>
 
       <main className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-4 px-4 py-4">
-        <section className="panel p-4">
-          <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-            Where are you trying to reach?
-          </Label>
-          <BuildingPicker
-            buildings={buildings}
-            value={profile?.target_building_id ?? null}
-            onSelect={setTarget}
-            placeholder="Pick a lecture building"
-          />
-          {destTime && target ? (
-            <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
-              <Navigation className="size-4 text-accent" />
-              About {destTime} walk to {target.name}
-            </p>
-          ) : null}
-        </section>
+        {target && !pickerExpanded ? (
+          <section className="panel p-4">
+            <button
+              type="button"
+              onClick={() => setPickerExpanded(true)}
+              className="flex w-full items-center justify-between gap-3 text-left"
+            >
+              <div className="min-w-0">
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Destination
+                </Label>
+                <p className="truncate font-medium">{target.name}</p>
+                {destTime ? (
+                  <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <Navigation className="size-4 text-accent" />
+                    About {destTime} walk
+                  </p>
+                ) : null}
+              </div>
+              <ChevronsUp className="h-5 w-5 shrink-0 text-muted-foreground" />
+            </button>
+          </section>
+        ) : (
+          <section className="panel p-4">
+            <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+              Where are you trying to reach?
+            </Label>
+            <BuildingPicker
+              buildings={buildings}
+              value={profile?.target_building_id ?? null}
+              onSelect={setTarget}
+              placeholder="Pick a lecture building"
+            />
+            {destTime && target ? (
+              <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
+                <Navigation className="size-4 text-accent" />
+                About {destTime} walk to {target.name}
+              </p>
+            ) : null}
+          </section>
+        )}
 
         <section className="panel p-4">
           {geo.sharing ? (
