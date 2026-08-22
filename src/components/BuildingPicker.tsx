@@ -85,17 +85,21 @@ type BuildingPickerProps = {
   buildings: Building[];
   value: string | null;
   onSelect: (id: string) => void;
+  onSearch?: (query: string) => void;
   placeholder?: string;
   className?: string;
 };
+
 
 export function BuildingPicker({
   buildings,
   value,
   onSelect,
+  onSearch,
   placeholder = "Pick a building",
   className,
 }: BuildingPickerProps) {
+
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -128,7 +132,14 @@ export function BuildingPicker({
   const categories = CATEGORY_ORDER.filter((c) => filtered[c]?.length);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) onSearch?.("");
+      }}
+    >
+
       <DialogTrigger asChild>
         <Button
           variant="outline"
@@ -155,10 +166,14 @@ export function BuildingPicker({
               type="text"
               placeholder="Search Makerere buildings…"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                onSearch?.(e.target.value);
+              }}
               className="flex h-12 w-full rounded-md bg-transparent py-3 text-base outline-none placeholder:text-muted-foreground"
               autoFocus
             />
+
           </div>
           <CommandList className="max-h-[60dvh] overflow-y-auto px-2 pb-4">
             <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
@@ -174,7 +189,9 @@ export function BuildingPicker({
                       onSelect(b.id);
                       setOpen(false);
                       setSearch("");
+                      onSearch?.("");
                     }}
+
                     className="flex items-center justify-between rounded-md px-2 py-3 text-base"
                   >
                     <span className="truncate pr-2">{b.name}</span>
