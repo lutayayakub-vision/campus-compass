@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { MessageSquare, Navigation, Radio, ChevronsUp } from "lucide-react";
+import { MessageSquare, Navigation, Radio, ChevronsUp, ChevronsDown } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -94,6 +94,7 @@ function FresherPage() {
   );
 
   const [pickerExpanded, setPickerExpanded] = useState(false);
+  const [mapFocused, setMapFocused] = useState(false);
 
   async function setTarget(id: string) {
     if (!user) return;
@@ -146,7 +147,15 @@ function FresherPage() {
     <div className="flex min-h-screen flex-col bg-background">
       <AppHeader subtitle={profile?.full_name ?? undefined} />
 
-      <div className="h-[42vh] min-h-64 w-full">
+      <div
+        className={
+          "relative w-full " +
+          (mapFocused ? "min-h-64 flex-1" : "h-[42vh] min-h-64")
+        }
+        onClick={() => {
+          if (!mapFocused) setMapFocused(true);
+        }}
+      >
         <MapPanel
           className="h-full w-full"
           people={people}
@@ -157,10 +166,24 @@ function FresherPage() {
             ...(target ? [[target.lat, target.lng] as [number, number]] : []),
           ]}
         />
+        {mapFocused ? (
+          <button
+            type="button"
+            aria-label="Show destination panel"
+            onClick={(e) => {
+              e.stopPropagation();
+              setMapFocused(false);
+            }}
+            className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-background/90 px-4 py-2 text-sm font-medium shadow-lg ring-1 ring-border backdrop-blur"
+          >
+            Destination
+            <ChevronsDown className="h-4 w-4" />
+          </button>
+        ) : null}
       </div>
 
       <main className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-4 px-4 py-4">
-        {target && !pickerExpanded ? (
+        {!mapFocused && target && !pickerExpanded ? (
           <section className="panel p-4">
             <button
               type="button"
@@ -182,7 +205,7 @@ function FresherPage() {
               <ChevronsUp className="h-5 w-5 shrink-0 text-muted-foreground" />
             </button>
           </section>
-        ) : (
+        ) : !mapFocused ? (
           <section className="panel p-4">
             <Label className="text-xs uppercase tracking-wide text-muted-foreground">
               Where are you trying to reach?
@@ -200,8 +223,9 @@ function FresherPage() {
               </p>
             ) : null}
           </section>
-        )}
+        ) : null}
 
+        {!mapFocused && (
         <section className="panel p-4">
           {geo.sharing ? (
             <>
@@ -237,6 +261,7 @@ function FresherPage() {
             <p className="mt-2 text-sm text-destructive">{geo.error}</p>
           ) : null}
         </section>
+        )}
 
         <section className="panel p-4">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">
