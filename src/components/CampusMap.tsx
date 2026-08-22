@@ -37,6 +37,23 @@ function FitBounds({ points }: { points: Array<[number, number]> }) {
   return null;
 }
 
+function CenterOn({
+  center,
+  onDone,
+}: {
+  center: [number, number];
+  onDone: () => void;
+}) {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo(center, 18, { animate: true, duration: 1 });
+    const t = setTimeout(onDone, 1100);
+    return () => clearTimeout(t);
+  }, [map, `${center[0]},${center[1]}`, onDone]);
+  return null;
+}
+
+
 export type CampusMapProps = {
   people: MapPerson[];
   buildings: MapBuilding[];
@@ -81,12 +98,14 @@ export default function CampusMap({
           position={[b.lat, b.lng]}
           icon={pin(`ff-pin--building${b.highlighted ? " ff-pin--target" : ""}`, "\u25B2")}
         >
-          <Popup>
-            <strong>{b.name}</strong>
-            {b.highlighted ? <div>Destination</div> : null}
-          </Popup>
-        </Marker>
-      ))}
+            <Popup>
+              <strong>{b.name}</strong>
+              {highlighted ? <div>{b.highlighted ? "Destination" : "Match"}</div> : null}
+            </Popup>
+          </Marker>
+        );
+      })}
+
 
       {people.map((p) => (
         <Marker
