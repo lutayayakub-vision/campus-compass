@@ -9,9 +9,13 @@ export type MapPanelProps = {
   buildings: MapBuilding[];
   routes?: MapRoute[] | null;
   fitTo?: Array<[number, number]>;
+  highlightedBuildingIds?: string[];
+  centerOn?: [number, number] | null;
+  onCentered?: () => void;
   onSelectPerson?: (id: string) => void;
   className?: string;
 };
+
 
 function Skeleton() {
   return (
