@@ -14,6 +14,7 @@ import { MapPanel } from "@/components/MapPanel";
 import { BuildingPicker } from "@/components/BuildingPicker";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/fresher")({
   head: () => ({
@@ -95,6 +96,7 @@ function FresherPage() {
 
   const [pickerExpanded, setPickerExpanded] = useState(false);
   const [mapFocused, setMapFocused] = useState(false);
+  const pickerOpen = !target || pickerExpanded;
 
   async function setTarget(id: string) {
     if (!user) return;
@@ -183,45 +185,63 @@ function FresherPage() {
       </div>
 
       <main className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-4 px-4 py-4">
-        {!mapFocused && target && !pickerExpanded ? (
-          <section className="panel p-4">
+        {!mapFocused ? (
+          <section className="panel overflow-hidden">
             <button
               type="button"
-              onClick={() => setPickerExpanded(true)}
-              className="flex w-full items-center justify-between gap-3 text-left"
+              onClick={() => setPickerExpanded((v) => !v)}
+              className="flex w-full items-center justify-between gap-3 p-4 text-left"
             >
               <div className="min-w-0">
-                <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                  Destination
-                </Label>
-                <p className="truncate font-medium">{target.name}</p>
-                {destTime ? (
-                  <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <Navigation className="size-4 text-accent" />
-                    About {destTime} walk
-                  </p>
-                ) : null}
+                {!pickerOpen ? (
+                  <>
+                    <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                      Destination
+                    </Label>
+                    <p className="truncate font-medium">{target?.name}</p>
+                    {destTime ? (
+                      <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <Navigation className="size-4 text-accent" />
+                        About {destTime} walk
+                      </p>
+                    ) : null}
+                  </>
+                ) : (
+                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Where are you trying to reach?
+                  </Label>
+                )}
               </div>
-              <ChevronsUp className="h-5 w-5 shrink-0 text-muted-foreground" />
+              <ChevronsUp
+                className={cn(
+                  "h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-300",
+                  pickerOpen && "rotate-180",
+                )}
+              />
             </button>
-          </section>
-        ) : !mapFocused ? (
-          <section className="panel p-4">
-            <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-              Where are you trying to reach?
-            </Label>
-            <BuildingPicker
-              buildings={buildings}
-              value={profile?.target_building_id ?? null}
-              onSelect={setTarget}
-              placeholder="Pick a lecture building"
-            />
-            {destTime && target ? (
-              <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
-                <Navigation className="size-4 text-accent" />
-                About {destTime} walk to {target.name}
-              </p>
-            ) : null}
+            <div
+              className={cn(
+                "grid transition-all duration-300 ease-out",
+                pickerOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+              )}
+            >
+              <div className="overflow-hidden">
+                <div className="px-4 pb-4">
+                  <BuildingPicker
+                    buildings={buildings}
+                    value={profile?.target_building_id ?? null}
+                    onSelect={setTarget}
+                    placeholder="Pick a lecture building"
+                  />
+                  {destTime && target ? (
+                    <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <Navigation className="size-4 text-accent" />
+                      About {destTime} walk to {target.name}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            </div>
           </section>
         ) : null}
 
