@@ -1,7 +1,13 @@
 import { useEffect, useMemo } from "react";
 import L from "leaflet";
 import { MapContainer, Marker, Popup, TileLayer, useMap, Polyline } from "react-leaflet";
-import { CAMPUS_CENTER, CAMPUS_BOUNDS, type MapBuilding, MapPerson, type MapRoute } from "@/lib/campus";
+import {
+  CAMPUS_CENTER,
+  CAMPUS_BOUNDS,
+  type MapBuilding,
+  type MapPerson,
+  type MapRoute,
+} from "@/lib/campus";
 
 function pin(className: string, label: string) {
   return L.divIcon({
@@ -53,12 +59,14 @@ function CenterOn({
   return null;
 }
 
-
 export type CampusMapProps = {
   people: MapPerson[];
   buildings: MapBuilding[];
   routes?: MapRoute[] | null;
   fitTo?: Array<[number, number]>;
+  highlightedBuildingIds?: string[];
+  centerOn?: [number, number] | null;
+  onCentered?: () => void;
   onSelectPerson?: (id: string) => void;
 };
 
@@ -67,6 +75,9 @@ export default function CampusMap({
   buildings,
   routes,
   fitTo,
+  highlightedBuildingIds,
+  centerOn,
+  onCentered,
   onSelectPerson,
 }: CampusMapProps) {
   const fitPoints = useMemo(
@@ -91,13 +102,16 @@ export default function CampusMap({
         maxZoom={19}
       />
       <FitBounds points={fitPoints} />
+      {centerOn ? <CenterOn center={centerOn} onDone={() => onCentered?.()} /> : null}
 
-      {buildings.map((b) => (
-        <Marker
-          key={b.id}
-          position={[b.lat, b.lng]}
-          icon={pin(`ff-pin--building${b.highlighted ? " ff-pin--target" : ""}`, "\u25B2")}
-        >
+      {buildings.map((b) => {
+        const highlighted = b.highlighted || highlightedBuildingIds?.includes(b.id);
+        return (
+          <Marker
+            key={b.id}
+            position={[b.lat, b.lng]}
+            icon={pin(`ff-pin--building${highlighted ? " ff-pin--target" : ""}`, "\u25B2")}
+          >
             <Popup>
               <strong>{b.name}</strong>
               {highlighted ? <div>{b.highlighted ? "Destination" : "Match"}</div> : null}
@@ -105,7 +119,6 @@ export default function CampusMap({
           </Marker>
         );
       })}
-
 
       {people.map((p) => (
         <Marker
