@@ -82,6 +82,15 @@ function FresherPage() {
     return list;
   }, [me, repLoc, rep, profile?.full_name]);
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [centerOn, setCenterOn] = useState<[number, number] | null>(null);
+
+  const highlightedBuildingIds = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [];
+    return buildings.filter((b) => b.name.toLowerCase().includes(q)).map((b) => b.id);
+  }, [buildings, searchQuery]);
+
   const mapBuildings = useMemo<MapBuilding[]>(
     () =>
       buildings.map((b) => ({
@@ -95,6 +104,7 @@ function FresherPage() {
   );
 
   const [pickerExpanded, setPickerExpanded] = useState(false);
+
   const [mapFocused, setMapFocused] = useState(false);
   const pickerOpen = !target || pickerExpanded;
 
@@ -110,8 +120,11 @@ function FresherPage() {
     }
     await refreshProfile();
     setPickerExpanded(false);
+    const selected = buildings.find((b) => b.id === id);
+    if (selected) setCenterOn([selected.lat, selected.lng]);
     toast.success("Destination shared with your rep");
   }
+
 
   const status = myLoc?.status ?? "lost";
 
@@ -163,11 +176,15 @@ function FresherPage() {
           people={people}
           buildings={mapBuildings}
           routes={mapRoutes}
+          highlightedBuildingIds={highlightedBuildingIds}
+          centerOn={centerOn}
+          onCentered={() => setCenterOn(null)}
           fitTo={[
             ...people.map((p) => [p.lat, p.lng] as [number, number]),
             ...(target ? [[target.lat, target.lng] as [number, number]] : []),
           ]}
         />
+
         {mapFocused ? (
           <button
             type="button"
@@ -231,8 +248,10 @@ function FresherPage() {
                     buildings={buildings}
                     value={profile?.target_building_id ?? null}
                     onSelect={setTarget}
+                    onSearch={setSearchQuery}
                     placeholder="Pick a lecture building"
                   />
+
                   {destTime && target ? (
                     <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
                       <Navigation className="size-4 text-accent" />
