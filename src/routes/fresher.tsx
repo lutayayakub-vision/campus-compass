@@ -204,10 +204,17 @@ function FresherPage() {
       <main className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-4 px-4 py-4">
         {!mapFocused ? (
           <section className="panel overflow-hidden">
-            <button
-              type="button"
+            <div
+              role="button"
+              tabIndex={0}
               onClick={() => setPickerExpanded((v) => !v)}
-              className="flex w-full items-center justify-between gap-3 p-4 text-left"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setPickerExpanded((v) => !v);
+                }
+              }}
+              className="flex w-full cursor-pointer items-center justify-between gap-3 p-4 text-left"
             >
               <div className="min-w-0">
                 {!pickerOpen ? (
@@ -235,7 +242,8 @@ function FresherPage() {
                   pickerOpen && "rotate-180",
                 )}
               />
-            </button>
+            </div>
+
             <div
               className={cn(
                 "grid transition-all duration-300 ease-out",
